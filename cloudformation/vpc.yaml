@@ -36,6 +36,10 @@ Parameters:
     Default: 10.0.4.0/24
     Description: CIDR block for the second private subnet
 
+Conditions:
+  IsProd: !Equals [!Ref Environment, 'prod']
+  CreateNatGateway: !Equals [!Ref Environment, 'prod']
+
 Resources:
   # VPC
   VPC:
@@ -93,9 +97,10 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
   
-  # Private Subnets
+  # Private Subnets - Only created for prod environment
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
+    Condition: IsProd
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Ref PrivateSubnet1Cidr
@@ -109,6 +114,7 @@ Resources:
   
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
+    Condition: IsProd
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Ref PrivateSubnet2Cidr
@@ -120,9 +126,10 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
   
-  # NAT Gateway
+  # NAT Gateway - Only created for prod environment
   NatGatewayEIP:
     Type: AWS::EC2::EIP
+    Condition: CreateNatGateway
     DependsOn: InternetGatewayAttachment
     Properties:
       Domain: vpc
@@ -134,6 +141,7 @@ Resources:
   
   NatGateway:
     Type: AWS::EC2::NatGateway
+    Condition: CreateNatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayEIP.AllocationId
       SubnetId: !Ref PublicSubnet1
@@ -174,8 +182,10 @@ Resources:
       SubnetId: !Ref PublicSubnet2
       RouteTableId: !Ref PublicRouteTable
   
+  # Private Route Table - Only created for prod environment
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
+    Condition: IsProd
     Properties:
       VpcId: !Ref VPC
       Tags:
@@ -186,6 +196,7 @@ Resources:
   
   PrivateRoute:
     Type: AWS::EC2::Route
+    Condition: CreateNatGateway
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: 0.0.0.0/0
@@ -193,19 +204,22 @@ Resources:
   
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: IsProd
     Properties:
       SubnetId: !Ref PrivateSubnet1
       RouteTableId: !Ref PrivateRouteTable
   
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: IsProd
     Properties:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable
   
-  # VPC Endpoints
+  # VPC Endpoints - Only created for prod environment
   S3Endpoint:
     Type: AWS::EC2::VPCEndpoint
+    Condition: IsProd
     Properties:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcId: !Ref VPC
@@ -223,6 +237,7 @@ Resources:
   
   DynamoDBEndpoint:
     Type: AWS::EC2::VPCEndpoint
+    Condition: IsProd
     Properties:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.dynamodb'
       VpcId: !Ref VPC
@@ -258,12 +273,12 @@ Outputs:
   
   PrivateSubnet1:
     Description: ID of the first private subnet
-    Value: !Ref PrivateSubnet1
+    Value: !If [IsProd, !Ref PrivateSubnet1, !Ref PublicSubnet1]
     Export:
       Name: !Sub '${AWS::StackName}-PrivateSubnet1'
   
   PrivateSubnet2:
     Description: ID of the second private subnet
-    Value: !Ref PrivateSubnet2
+    Value: !If [IsProd, !Ref PrivateSubnet2, !Ref PublicSubnet2]
     Export:
       Name: !Sub '${AWS::StackName}-PrivateSubnet2'

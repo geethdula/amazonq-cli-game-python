@@ -173,11 +173,16 @@ class GameState:
                     new_enemies.append(enemy)
             self.enemies = new_enemies
             
-            # Check bullet-enemy collisions
+            # Check bullet-enemy collisions with more generous hit detection
             for bullet in self.bullets[:]:
                 for enemy in self.enemies[:]:
-                    if (abs(bullet[0] - enemy[0]) < 20 and 
-                        abs(bullet[1] - enemy[1]) < 20):
+                    # Use a more generous hit radius for better hit detection
+                    dx = bullet[0] - enemy[0]
+                    dy = bullet[1] - enemy[1]
+                    distance = (dx * dx + dy * dy) ** 0.5  # Square root for distance
+                    
+                    # Increased hit radius (25 pixels)
+                    if distance < 25:
                         if bullet in self.bullets:
                             self.bullets.remove(bullet)
                         if enemy in self.enemies:
@@ -291,7 +296,7 @@ def index():
                 height: 600px;
                 margin: 0 auto;
                 background-color: #000;
-                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000"/><circle cx="50" cy="50" r="1" fill="%23fff" opacity="0.3"/><circle cx="20" cy="30" r="0.5" fill="%23fff" opacity="0.3"/><circle cx="70" cy="80" r="0.7" fill="%23fff" opacity="0.3"/><circle cx="10" cy="90" r="0.4" fill="%23fff" opacity="0.3"/><circle cx="90" cy="10" r="0.6" fill="%23fff" opacity="0.3"/><circle cx="30" cy="60" r="0.5" fill="%23fff" opacity="0.3"/><circle cx="80" cy="40" r="0.8" fill="%23fff" opacity="0.3"/></svg>');
+                background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%23000033"/><circle cx="50" cy="50" r="1" fill="%23fff" opacity="0.3"/><circle cx="150" cy="80" r="0.8" fill="%23fff" opacity="0.4"/><circle cx="250" cy="150" r="0.6" fill="%23fff" opacity="0.3"/><circle cx="350" cy="220" r="1.2" fill="%23fff" opacity="0.5"/><circle cx="450" cy="280" r="0.7" fill="%23fff" opacity="0.3"/><circle cx="550" cy="350" r="0.9" fill="%23fff" opacity="0.4"/><circle cx="650" cy="420" r="1.1" fill="%23fff" opacity="0.5"/><circle cx="750" cy="480" r="0.8" fill="%23fff" opacity="0.3"/><circle cx="100" cy="520" r="1" fill="%23fff" opacity="0.4"/><circle cx="200" cy="100" r="0.7" fill="%23fff" opacity="0.3"/><circle cx="300" cy="180" r="0.9" fill="%23fff" opacity="0.5"/><circle cx="400" cy="250" r="0.6" fill="%23fff" opacity="0.3"/><circle cx="500" cy="320" r="1.2" fill="%23fff" opacity="0.4"/><circle cx="600" cy="390" r="0.8" fill="%23fff" opacity="0.3"/><circle cx="700" cy="460" r="0.7" fill="%23fff" opacity="0.5"/><circle cx="120" cy="540" r="0.9" fill="%23fff" opacity="0.4"/><path d="M0,150 Q400,50 800,200" stroke="%234B0082" stroke-width="3" fill="none" opacity="0.2"/><path d="M0,300 Q400,400 800,350" stroke="%234B0082" stroke-width="2" fill="none" opacity="0.1"/><path d="M0,450 Q400,500 800,400" stroke="%234B0082" stroke-width="4" fill="none" opacity="0.15"/></svg>');
                 position: relative;
                 overflow: hidden;
                 border: 2px solid #ff9900;
@@ -300,7 +305,7 @@ def index():
             .player {
                 width: 40px;
                 height: 60px;
-                background-image: url('assets/spaceship.svg');
+                background-image: url('/assets/spaceship.svg');
                 background-size: contain;
                 background-repeat: no-repeat;
                 position: absolute;
@@ -308,20 +313,22 @@ def index():
                 left: 50%;
                 transform: translateX(-50%);
                 z-index: 10;
+                filter: drop-shadow(0 0 10px #00aaff);
             }
             .bullet {
                 width: 8px;
                 height: 16px;
-                background-image: url('assets/bullet.svg');
+                background-image: url('/assets/bullet.svg');
                 background-size: contain;
                 background-repeat: no-repeat;
                 position: absolute;
                 z-index: 5;
+                filter: drop-shadow(0 0 5px #ffff00);
             }
             .enemy-bullet {
                 width: 8px;
                 height: 16px;
-                background-image: url('assets/enemy_bullet.svg');
+                background-image: url('/assets/enemy_bullet.svg');
                 background-size: contain;
                 background-repeat: no-repeat;
                 position: absolute;
@@ -334,15 +341,19 @@ def index():
                 background-size: contain;
                 background-repeat: no-repeat;
                 z-index: 5;
+                filter: contrast(1.2) brightness(1.1);
             }
             .enemy.ddos { 
-                background-image: url('assets/enemy_ddos.svg');
+                background-image: url('/assets/enemy_ddos.svg');
+                filter: drop-shadow(0 0 5px #ff3333);
             }
             .enemy.malware { 
-                background-image: url('assets/enemy_malware.svg');
+                background-image: url('/assets/enemy_malware.svg');
+                filter: drop-shadow(0 0 5px #33ff33);
             }
             .enemy.hacker { 
-                background-image: url('assets/enemy_hacker.svg');
+                background-image: url('/assets/enemy_hacker.svg');
+                filter: drop-shadow(0 0 5px #3333ff);
             }
             .boss {
                 width: 80px;
@@ -353,13 +364,13 @@ def index():
                 z-index: 15;
             }
             .boss.level1 {
-                background-image: url('assets/boss_level1.svg');
+                background-image: url('/assets/boss_level1.svg');
             }
             .boss.level2 {
-                background-image: url('assets/boss_level2.svg');
+                background-image: url('/assets/boss_level2.svg');
             }
             .boss.level3 {
-                background-image: url('assets/boss_level3.svg');
+                background-image: url('/assets/boss_level3.svg');
             }
             .boss-health-container {
                 width: 80px;
@@ -567,7 +578,6 @@ def index():
                 padding: 15px 40px;
             }
             
-            /* Debug overlay for collision detection */
             .debug-overlay {
                 position: absolute;
                 top: 10px;
@@ -578,6 +588,23 @@ def index():
                 font-size: 12px;
                 z-index: 100;
                 display: none;
+            }
+            
+            /* Hitbox visualization for debugging */
+            .hitbox-debug {
+                position: absolute;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 100;
+                display: none;
+            }
+            .bullet-hitbox {
+                border: 1px solid yellow;
+                opacity: 0.5;
+            }
+            .enemy-hitbox {
+                border: 1px solid red;
+                opacity: 0.5;
             }
             
             /* Difficulty selector */
@@ -1487,47 +1514,57 @@ def index():
                             height: 40
                         };
                         
-                        // Check for rectangle collision
+                        // Check for bullet-enemy collisions with pixel-perfect hit detection
                         if (bulletRect.x < enemyRect.x + enemyRect.width &&
                             bulletRect.x + bulletRect.width > enemyRect.x &&
                             bulletRect.y < enemyRect.y + enemyRect.height &&
                             bulletRect.y + bulletRect.height > enemyRect.y) {
                             
-                            // Debug info
-                            if (debugOverlay) {
-                                debugOverlay.textContent = `Collision: Bullet(${bullet.x},${bullet.y}) Enemy(${enemy.x},${enemy.y})`;
-                                debugOverlay.style.display = 'block';
-                            }
+                            // Always consider it a hit if the centers are close enough
+                            const dx = bullet.x - enemy.x;
+                            const dy = bullet.y - enemy.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
                             
-                            // Create explosion effect
-                            createExplosion(enemy.x, enemy.y);
+                            // Increased hit radius for better hit detection
+                            const hitRadius = 25;
+                            let hit = distance < hitRadius;
                             
-                            // Collision detected
-                            if (bullet.element && bullet.element.parentNode) {
-                                bullet.element.remove();
-                            }
-                            bullets.splice(i, 1);
-                            
-                            if (enemy.element && enemy.element.parentNode) {
-                                enemy.element.remove();
-                            }
-                            
-                            // Check if enemy should drop powerup (only after level 1)
-                            if (level > 1) {
-                                const settings = DIFFICULTY_SETTINGS[difficulty];
-                                if (Math.random() < POWERUP_DROP_CHANCE * settings.powerupDropChanceMultiplier) {
-                                    createPowerup(enemy.x, enemy.y);
+                            if (hit) {
+                                // Debug info
+                                if (debugOverlay) {
+                                    debugOverlay.textContent = `Hit: Bullet(${bullet.x},${bullet.y}) Enemy(${enemy.x},${enemy.y}) Dist:${distance.toFixed(2)}`;
+                                    debugOverlay.style.display = 'block';
                                 }
+                                
+                                // Create explosion effect
+                                createExplosion(enemy.x, enemy.y);
+                                
+                                // Collision detected
+                                if (bullet.element && bullet.element.parentNode) {
+                                    bullet.element.remove();
+                                }
+                                bullets.splice(i, 1);
+                                
+                                if (enemy.element && enemy.element.parentNode) {
+                                    enemy.element.remove();
+                                }
+                                
+                                // Check if enemy should drop powerup (only after level 1)
+                                if (level > 1) {
+                                    const settings = DIFFICULTY_SETTINGS[difficulty];
+                                    if (Math.random() < POWERUP_DROP_CHANCE * settings.powerupDropChanceMultiplier) {
+                                        createPowerup(enemy.x, enemy.y);
+                                    }
+                                }
+                                
+                                enemies.splice(j, 1);
+                                
+                                // Increment enemies defeated counter
+                                enemiesDefeated++;
+                                
+                                score += 10 * level;
+                                scoreDisplay.textContent = 'Score: ' + score;
                             }
-                            
-                            enemies.splice(j, 1);
-                            
-                            // Increment enemies defeated counter
-                            enemiesDefeated++;
-                            
-                            score += 10 * level;
-                            scoreDisplay.textContent = 'Score: ' + score;
-                            
                             break;
                         }
                     }
@@ -1625,7 +1662,7 @@ def index():
                     }
                 }
                 
-                // Check powerup-player collisions
+                // Check powerup-player collisions with improved hit detection
                 for (let i = powerups.length - 1; i >= 0; i--) {
                     if (i >= powerups.length) continue; // Safety check
                     
@@ -1644,20 +1681,27 @@ def index():
                         height: 40
                     };
                     
-                    // Check for rectangle collision
+                    // First do a quick rectangle check
                     if (powerupRect.x < playerRect.x + playerRect.width &&
                         powerupRect.x + powerupRect.width > playerRect.x &&
                         powerupRect.y < playerRect.y + playerRect.height &&
                         powerupRect.y + powerupRect.height > playerRect.y) {
                         
-                        // Activate powerup
-                        activatePowerup(powerup.type);
+                        // More precise collision detection based on distance
+                        const dx = powerup.x - playerX;
+                        const dy = powerup.y - (CONTAINER_HEIGHT - 40);
+                        const distance = Math.sqrt(dx * dx + dy * dy);
                         
-                        // Remove powerup
-                        if (powerup.element && powerup.element.parentNode) {
-                            powerup.element.remove();
+                        if (distance < 35) { // Adjusted collision radius
+                            // Activate powerup
+                            activatePowerup(powerup.type);
+                            
+                            // Remove powerup
+                            if (powerup.element && powerup.element.parentNode) {
+                                powerup.element.remove();
+                            }
+                            powerups.splice(i, 1);
                         }
-                        powerups.splice(i, 1);
                     }
                 }
                 
@@ -1981,6 +2025,9 @@ def index():
             // Show difficulty modal at start
             difficultyModal.style.display = 'flex';
         </script>
+        <script src="/assets/debug.js"></script>
+        <script src="/assets/visual-effects.js"></script>
+        <link rel="stylesheet" href="/assets/visual-styles.css">
     </body>
     </html>
     """

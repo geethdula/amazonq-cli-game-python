@@ -75,7 +75,7 @@ Parameters:
   
   MaxCapacity:
     Type: Number
-    Default: 4
+    Default: 8
     Description: Maximum task count for auto-scaling
   
   MinCapacity:
@@ -87,6 +87,9 @@ Parameters:
     Type: Number
     Default: 70
     Description: CPU utilization threshold for scaling (%)
+
+Conditions:
+  IsProd: !Equals [!Ref Environment, 'prod']
 
 Resources:
   # Security Groups
@@ -310,12 +313,17 @@ Resources:
       LaunchType: FARGATE
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: DISABLED
+          # For dev, use public subnets with public IPs
+          # For prod, use private subnets without public IPs
+          AssignPublicIp: !If [IsProd, DISABLED, ENABLED]
           SecurityGroups:
             - !Ref ServiceSecurityGroup
-          Subnets:
-            - !Ref PrivateSubnet1
-            - !Ref PrivateSubnet2
+          Subnets: !If 
+            - IsProd
+            - - !Ref PrivateSubnet1
+              - !Ref PrivateSubnet2
+            - - !Ref PublicSubnet1
+              - !Ref PublicSubnet2
       LoadBalancers:
         - ContainerName: app
           ContainerPort: !Ref ContainerPort
