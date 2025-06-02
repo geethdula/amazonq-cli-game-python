@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ECR Repository for Cloud Defender Game'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - test
+      - prod
+    Description: Environment name
+  
+  RepositoryName:
+    Type: String
+    Default: cloud-defender
+    Description: Name of the ECR repository
+
+Resources:
+  Repository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub '${RepositoryName}-${Environment}'
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      ImageTagMutability: MUTABLE
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: CloudDefender
+
+Outputs:
+  RepositoryUri:
+    Description: URI of the ECR repository
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}'
+    Export:
+      Name: !Sub '${AWS::StackName}-RepositoryUri'
+  
+  RepositoryName:
+    Description: Name of the ECR repository
+    Value: !Ref Repository
+    Export:
+      Name: !Sub '${AWS::StackName}-RepositoryName'

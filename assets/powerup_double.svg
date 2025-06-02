@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+  <defs>
+    <linearGradient id="doubleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2196F3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1565C0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <g>
+    <!-- Double Shot Powerup -->
+    <circle cx="15" cy="15" r="12" fill="url(#doubleGradient)" stroke="#0D47A1" stroke-width="1" />
+    
+    <!-- Double bullet symbol -->
+    <rect x="10" y="8" width="3" height="14" fill="#FFFFFF" />
+    <rect x="17" y="8" width="3" height="14" fill="#FFFFFF" />
+    
+    <!-- Glow effect -->
+    <circle cx="15" cy="15" r="14" fill="none" stroke="#2196F3" stroke-width="1" stroke-opacity="0.5" />
+  </g>
+</svg>

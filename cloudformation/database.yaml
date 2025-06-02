@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'DynamoDB table for Cloud Defender Game'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - test
+      - prod
+    Description: Environment name
+
+Resources:
+  GameScoresTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'cloud-defender-${Environment}-scores'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: CloudDefender
+
+Outputs:
+  TableName:
+    Description: Name of the DynamoDB table
+    Value: !Ref GameScoresTable
+    Export:
+      Name: !Sub '${AWS::StackName}-TableName'
+  TableArn:
+    Description: ARN of the DynamoDB table
+    Value: !GetAtt GameScoresTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-TableArn'
