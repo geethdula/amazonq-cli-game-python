@@ -1,152 +1,265 @@
-// Enhanced visual effects for Cloud Defender game
+/**
+ * Visual effects for Cloud Defender game
+ * This script adds additional visual effects to enhance the game experience
+ */
+
+// Wait for the game to initialize
 document.addEventListener('DOMContentLoaded', function() {
-    // Add parallax background layers to the game container
+    // Create starfield background
+    createStarfield();
+    
+    // Add particle effects for explosions
+    enhanceExplosions();
+    
+    // Add shield pulse effect
+    enhanceShieldEffect();
+});
+
+/**
+ * Creates a dynamic starfield background
+ */
+function createStarfield() {
+    // Only create if game container exists
     const gameContainer = document.getElementById('game-container');
     if (!gameContainer) return;
     
-    // Create parallax background layers
-    const layers = [
-        { className: 'parallax-bg stars-small', zIndex: 1 },
-        { className: 'parallax-bg stars-medium', zIndex: 2 },
-        { className: 'parallax-bg stars-large', zIndex: 3 },
-        { className: 'parallax-bg nebula', zIndex: 4 }
-    ];
+    // Create starfield container
+    const starfield = document.createElement('div');
+    starfield.className = 'starfield';
+    starfield.style.position = 'absolute';
+    starfield.style.top = '0';
+    starfield.style.left = '0';
+    starfield.style.width = '100%';
+    starfield.style.height = '100%';
+    starfield.style.zIndex = '1';
+    starfield.style.overflow = 'hidden';
+    gameContainer.prepend(starfield);
     
-    // Add layers to game container
-    layers.forEach(layer => {
-        const div = document.createElement('div');
-        div.className = layer.className;
-        div.style.zIndex = layer.zIndex;
-        gameContainer.appendChild(div);
+    // Create stars
+    const numStars = 50;
+    for (let i = 0; i < numStars; i++) {
+        createStar(starfield);
+    }
+    
+    // Animate stars
+    animateStars(starfield);
+}
+
+/**
+ * Creates a single star element
+ */
+function createStar(container) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    
+    // Random position
+    const x = Math.random() * 100;
+    const y = Math.random() * 100;
+    
+    // Random size
+    const size = Math.random() * 2 + 1;
+    
+    // Random brightness
+    const opacity = Math.random() * 0.5 + 0.3;
+    
+    // Set star styles
+    star.style.position = 'absolute';
+    star.style.left = x + '%';
+    star.style.top = y + '%';
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.borderRadius = '50%';
+    star.style.backgroundColor = '#ffffff';
+    star.style.opacity = opacity;
+    
+    // Add to container
+    container.appendChild(star);
+    
+    // Store initial position for animation
+    star.dataset.x = x;
+    star.dataset.y = y;
+    star.dataset.speed = Math.random() * 0.05 + 0.01;
+}
+
+/**
+ * Animates the stars to create parallax scrolling effect
+ */
+function animateStars(container) {
+    // Only run if game is active
+    if (!gameActive) {
+        requestAnimationFrame(() => animateStars(container));
+        return;
+    }
+    
+    const stars = container.querySelectorAll('.star');
+    
+    stars.forEach(star => {
+        // Move star down
+        const y = parseFloat(star.dataset.y) + parseFloat(star.dataset.speed);
+        
+        // Reset if star goes off screen
+        if (y > 100) {
+            star.dataset.y = 0;
+            star.dataset.x = Math.random() * 100;
+        } else {
+            star.dataset.y = y;
+        }
+        
+        // Update position
+        star.style.top = y + '%';
     });
     
-    // Override the explosion function with particle effects
-    if (typeof window.createExplosion !== 'function') {
-        window.originalCreateExplosion = window.createExplosion;
-        
-        window.createExplosion = function(x, y, size = 'medium') {
-            // If the original function exists, call it as a fallback
-            if (window.originalCreateExplosion) {
-                window.originalCreateExplosion(x, y);
-            }
+    // Continue animation
+    requestAnimationFrame(() => animateStars(container));
+}
+
+/**
+ * Enhances explosion effects with additional particles
+ */
+function enhanceExplosions() {
+    // Override the createExplosion function to add more particles
+    const originalCreateExplosion = window.createExplosion;
+    
+    if (originalCreateExplosion) {
+        window.createExplosion = function(x, y) {
+            // Call original function
+            originalCreateExplosion(x, y);
             
-            const particleCount = size === 'large' ? 20 : (size === 'medium' ? 12 : 6);
-            const baseSize = size === 'large' ? 8 : (size === 'medium' ? 5 : 3);
-            const duration = size === 'large' ? 800 : (size === 'medium' ? 500 : 300);
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'explosion-particle';
-                
-                // Random size for each particle
-                const particleSize = baseSize + Math.random() * baseSize;
-                
-                // Random color - orange, yellow, red
-                const colors = ['#ff4500', '#ff8c00', '#ffd700', '#ff6347'];
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                
-                particle.style.width = particleSize + 'px';
-                particle.style.height = particleSize + 'px';
-                particle.style.backgroundColor = color;
-                particle.style.boxShadow = `0 0 ${particleSize}px ${color}`;
-                
-                // Position at explosion center
-                particle.style.left = (x - particleSize/2) + 'px';
-                particle.style.top = (y - particleSize/2) + 'px';
-                
-                // Random direction
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 1 + Math.random() * 3;
-                const vx = Math.cos(angle) * speed;
-                const vy = Math.sin(angle) * speed;
-                
-                gameContainer.appendChild(particle);
-                
-                // Animate particle
-                let opacity = 1;
-                let size = particleSize;
-                let posX = x - particleSize/2;
-                let posY = y - particleSize/2;
-                
-                const animateParticle = () => {
-                    if (opacity <= 0) {
-                        if (particle.parentNode) {
-                            particle.parentNode.removeChild(particle);
-                        }
-                        return;
-                    }
-                    
-                    opacity -= 0.02;
-                    size += 0.1;
-                    posX += vx;
-                    posY += vy;
-                    
-                    particle.style.opacity = opacity;
-                    particle.style.width = size + 'px';
-                    particle.style.height = size + 'px';
-                    particle.style.left = posX + 'px';
-                    particle.style.top = posY + 'px';
-                    
-                    requestAnimationFrame(animateParticle);
-                };
-                
-                requestAnimationFrame(animateParticle);
-            }
+            // Add additional particle effects
+            createExplosionParticles(x, y);
         };
     }
+}
+
+/**
+ * Creates particle effects for explosions
+ */
+function createExplosionParticles(x, y) {
+    const gameContainer = document.getElementById('game-container');
+    if (!gameContainer) return;
     
-    // Enhanced level up function
-    if (typeof window.showLevelUpMessage === 'function') {
-        window.originalShowLevelUpMessage = window.showLevelUpMessage;
+    // Number of particles
+    const numParticles = 8;
+    
+    // Create particles
+    for (let i = 0; i < numParticles; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'explosion-particle';
         
-        window.showLevelUpMessage = function(message) {
-            // If it's a level up message
-            if (message.includes('LEVEL')) {
-                const level = parseInt(message.replace(/\D/g, '')) || 1;
-                
-                // Create level up effect container
-                const levelEffect = document.createElement('div');
-                levelEffect.className = 'level-transition';
-                gameContainer.appendChild(levelEffect);
-                
-                // Add level text
-                const levelText = document.createElement('div');
-                levelText.className = 'level-text';
-                levelText.textContent = 'LEVEL ' + level;
-                levelEffect.appendChild(levelText);
-                
-                // Add subtitle
-                const subtitle = document.createElement('div');
-                subtitle.className = 'level-subtitle';
-                
-                // Different messages for different levels
-                const messages = [
-                    "Threat Level Increasing",
-                    "Defend The Cloud!",
-                    "Security Breach Imminent",
-                    "Critical Systems Alert",
-                    "Maximum Defense Required"
-                ];
-                subtitle.textContent = messages[Math.min(level - 1, messages.length - 1)];
-                levelEffect.appendChild(subtitle);
-                
-                // Remove after animation completes
-                setTimeout(() => {
-                    levelEffect.classList.add('fade-out');
-                    setTimeout(() => {
-                        if (levelEffect.parentNode) {
-                            levelEffect.parentNode.removeChild(levelEffect);
-                        }
-                    }, 1000);
-                }, 2000);
-            } else {
-                // For other messages, use the original function
-                if (window.originalShowLevelUpMessage) {
-                    window.originalShowLevelUpMessage(message);
+        // Set particle styles
+        particle.style.position = 'absolute';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.width = '3px';
+        particle.style.height = '3px';
+        particle.style.borderRadius = '50%';
+        particle.style.backgroundColor = i % 2 === 0 ? '#ffcc00' : '#ff6600';
+        
+        // Add to container
+        gameContainer.appendChild(particle);
+        
+        // Random direction
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 2;
+        const dx = Math.cos(angle) * speed;
+        const dy = Math.sin(angle) * speed;
+        
+        // Animate particle
+        let opacity = 1;
+        let posX = x;
+        let posY = y;
+        
+        const animateParticle = () => {
+            if (opacity <= 0) {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
                 }
+                return;
             }
+            
+            // Update position
+            posX += dx;
+            posY += dy;
+            opacity -= 0.05;
+            
+            particle.style.left = posX + 'px';
+            particle.style.top = posY + 'px';
+            particle.style.opacity = opacity;
+            
+            requestAnimationFrame(animateParticle);
         };
+        
+        requestAnimationFrame(animateParticle);
     }
+}
+
+/**
+ * Enhances shield effect with additional visual elements
+ */
+function enhanceShieldEffect() {
+    // Check for shield effect updates
+    setInterval(() => {
+        const shieldElement = document.querySelector('.shield-effect');
+        if (shieldElement && hasShield) {
+            // Add shield particles
+            createShieldParticle(shieldElement);
+        }
+    }, 200);
+}
+
+/**
+ * Creates a particle effect for the shield
+ */
+function createShieldParticle(shieldElement) {
+    const gameContainer = document.getElementById('game-container');
+    if (!gameContainer) return;
     
-    console.log('Visual effects enhancement loaded');
-});
+    // Get shield position
+    const rect = shieldElement.getBoundingClientRect();
+    const containerRect = gameContainer.getBoundingClientRect();
+    
+    const centerX = rect.left - containerRect.left + rect.width / 2;
+    const centerY = rect.top - containerRect.top + rect.height / 2;
+    
+    // Create particle
+    const particle = document.createElement('div');
+    particle.className = 'shield-particle';
+    
+    // Random position on shield perimeter
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 30;
+    const x = centerX + Math.cos(angle) * radius;
+    const y = centerY + Math.sin(angle) * radius;
+    
+    // Set particle styles
+    particle.style.position = 'absolute';
+    particle.style.left = x + 'px';
+    particle.style.top = y + 'px';
+    particle.style.width = '4px';
+    particle.style.height = '4px';
+    particle.style.borderRadius = '50%';
+    particle.style.backgroundColor = '#FFC107';
+    particle.style.opacity = '0.7';
+    
+    // Add to container
+    gameContainer.appendChild(particle);
+    
+    // Animate particle
+    let opacity = 0.7;
+    
+    const animateParticle = () => {
+        if (opacity <= 0) {
+            if (particle.parentNode) {
+                particle.parentNode.removeChild(particle);
+            }
+            return;
+        }
+        
+        opacity -= 0.05;
+        particle.style.opacity = opacity;
+        
+        requestAnimationFrame(animateParticle);
+    };
+    
+    requestAnimationFrame(animateParticle);
+}

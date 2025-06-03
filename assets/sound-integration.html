@@ -1,0 +1,241 @@
+<!-- 
+  Sound Integration Guide for Cloud Defender
+  
+  This file provides instructions on how to integrate the sound system
+  into the Cloud Defender game.
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sound Integration Guide - Cloud Defender</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      color: #232f3e;
+    }
+    h1 {
+      border-bottom: 2px solid #ff9900;
+      padding-bottom: 10px;
+    }
+    code {
+      background-color: #f5f5f5;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .note {
+      background-color: #fff8e1;
+      border-left: 4px solid #ffca28;
+      padding: 10px;
+      margin: 15px 0;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 15px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sound Integration Guide - Cloud Defender</h1>
+  
+  <h2>Overview</h2>
+  <p>
+    This guide explains how to integrate the sound system into the Cloud Defender game.
+    The sound system consists of two main JavaScript files:
+  </p>
+  <ul>
+    <li><code>sounds.js</code> - Core sound system for loading and playing sounds</li>
+    <li><code>game-audio.js</code> - Integration with game events</li>
+  </ul>
+  
+  <div class="note">
+    <strong>Note:</strong> You'll need to create or obtain actual sound files for the game.
+    The sound system is set up to use MP3 files, but you can modify it to use other formats.
+  </div>
+  
+  <h2>Required Sound Files</h2>
+  <p>
+    The following sound files should be placed in the <code>/assets/sounds/</code> directory:
+  </p>
+  
+  <table>
+    <tr>
+      <th>Sound File</th>
+      <th>Description</th>
+      <th>Used When</th>
+    </tr>
+    <tr>
+      <td>player_shoot.mp3</td>
+      <td>Player firing weapon</td>
+      <td>When player shoots</td>
+    </tr>
+    <tr>
+      <td>player_hit.mp3</td>
+      <td>Player taking damage</td>
+      <td>When player is hit by enemy or bullet</td>
+    </tr>
+    <tr>
+      <td>player_explode.mp3</td>
+      <td>Player ship exploding</td>
+      <td>When player is destroyed (game over)</td>
+    </tr>
+    <tr>
+      <td>enemy_hit.mp3</td>
+      <td>Enemy taking damage</td>
+      <td>When bullet hits enemy</td>
+    </tr>
+    <tr>
+      <td>enemy_explode.mp3</td>
+      <td>Enemy exploding</td>
+      <td>When enemy is destroyed</td>
+    </tr>
+    <tr>
+      <td>enemy_shoot.mp3</td>
+      <td>Enemy firing weapon</td>
+      <td>When enemy shoots</td>
+    </tr>
+    <tr>
+      <td>boss_appear.mp3</td>
+      <td>Boss arrival sound</td>
+      <td>When boss appears</td>
+    </tr>
+    <tr>
+      <td>boss_hit.mp3</td>
+      <td>Boss taking damage</td>
+      <td>When bullet hits boss</td>
+    </tr>
+    <tr>
+      <td>boss_explode.mp3</td>
+      <td>Boss exploding</td>
+      <td>When boss is destroyed</td>
+    </tr>
+    <tr>
+      <td>powerup_appear.mp3</td>
+      <td>Powerup appearing</td>
+      <td>When powerup spawns</td>
+    </tr>
+    <tr>
+      <td>powerup_collect.mp3</td>
+      <td>Powerup collection</td>
+      <td>When player collects powerup</td>
+    </tr>
+    <tr>
+      <td>button_click.mp3</td>
+      <td>UI button click</td>
+      <td>When any button is clicked</td>
+    </tr>
+    <tr>
+      <td>level_up.mp3</td>
+      <td>Level up fanfare</td>
+      <td>When player advances to next level</td>
+    </tr>
+    <tr>
+      <td>game_over.mp3</td>
+      <td>Game over sound</td>
+      <td>When player loses</td>
+    </tr>
+    <tr>
+      <td>background_music.mp3</td>
+      <td>Game background music</td>
+      <td>Plays continuously during gameplay</td>
+    </tr>
+  </table>
+  
+  <h2>Integration Steps</h2>
+  
+  <h3>1. Include the JavaScript Files</h3>
+  <p>
+    Add the following script tags to your HTML file, just before the closing <code>&lt;/body&gt;</code> tag:
+  </p>
+  
+  <pre>&lt;script src="/assets/sounds.js"&gt;&lt;/script&gt;
+&lt;script src="/assets/game-audio.js"&gt;&lt;/script&gt;</pre>
+  
+  <h3>2. Create Sound Files</h3>
+  <p>
+    Create or obtain sound files for all the required sounds listed above.
+    Place them in the <code>/assets/sounds/</code> directory.
+  </p>
+  
+  <h3>3. Test the Integration</h3>
+  <p>
+    The sound system should automatically initialize when the page loads.
+    A mute button will appear in the top-right corner of the game container.
+    Background music will start when the game starts.
+  </p>
+  
+  <h2>Customizing the Sound System</h2>
+  
+  <h3>Adjusting Volume Levels</h3>
+  <p>
+    You can adjust the volume levels in the <code>VOLUME_LEVELS</code> object in <code>sounds.js</code>:
+  </p>
+  
+  <pre>const VOLUME_LEVELS = {
+    master: 0.7,  // Overall volume (0.0 to 1.0)
+    sfx: 0.8,     // Sound effects volume
+    music: 0.5    // Background music volume
+};</pre>
+  
+  <h3>Adding New Sounds</h3>
+  <p>
+    To add a new sound:
+  </p>
+  <ol>
+    <li>Add the sound file to the <code>/assets/sounds/</code> directory</li>
+    <li>Add an entry to the <code>SOUND_URLS</code> object in <code>sounds.js</code></li>
+    <li>Use <code>window.gameSounds.play('yourSoundKey')</code> to play the sound</li>
+  </ol>
+  
+  <h3>Preloading Additional Sounds</h3>
+  <p>
+    To preload additional sounds for better performance, add them to the preload list:
+  </p>
+  
+  <pre>preloadSounds(['playerShoot', 'enemyHit', 'yourNewSound']);</pre>
+  
+  <h2>Troubleshooting</h2>
+  
+  <h3>No Sound Playing</h3>
+  <ul>
+    <li>Check browser console for errors</li>
+    <li>Verify that sound files exist in the correct location</li>
+    <li>Ensure the mute button is not active (should show 🔊 not 🔇)</li>
+    <li>Some browsers require user interaction before playing audio - try clicking somewhere on the page first</li>
+  </ul>
+  
+  <h3>Sound Delays</h3>
+  <ul>
+    <li>Add more sounds to the preload list in <code>sounds.js</code></li>
+    <li>Use smaller audio files (compress or reduce quality)</li>
+    <li>Convert to a more efficient format (like MP3 or OGG)</li>
+  </ul>
+  
+  <div class="note">
+    <strong>Browser Support:</strong> The Web Audio API is supported in all modern browsers,
+    but some mobile browsers have restrictions on audio playback.
+  </div>
+</body>
+</html>

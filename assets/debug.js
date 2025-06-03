@@ -1,176 +1,137 @@
-// Debug functionality for Cloud Defender game
-document.addEventListener('DOMContentLoaded', function() {
-    // Add debug mode toggle button
-    const gameContainer = document.getElementById('game-container');
-    if (!gameContainer) return;
+/**
+ * Debug utilities for Cloud Defender game
+ * This script adds debugging capabilities that can be enabled during development
+ */
+
+// Debug mode flag - set to true to enable debugging features
+const DEBUG_MODE = false;
+
+// Initialize debug features if debug mode is enabled
+if (DEBUG_MODE) {
+    console.log("Debug mode enabled");
     
-    const debugModeBtn = document.createElement('button');
-    debugModeBtn.textContent = 'Toggle Debug Mode';
-    debugModeBtn.className = 'button';
-    debugModeBtn.style.position = 'absolute';
-    debugModeBtn.style.top = '10px';
-    debugModeBtn.style.right = '10px';
-    debugModeBtn.style.zIndex = '1000';
-    debugModeBtn.style.fontSize = '12px';
-    debugModeBtn.style.padding = '5px';
-    gameContainer.appendChild(debugModeBtn);
-    
-    // Add debug overlay if it doesn't exist
-    let debugOverlay = document.getElementById('debug-overlay');
-    if (!debugOverlay) {
-        debugOverlay = document.createElement('div');
-        debugOverlay.id = 'debug-overlay';
-        debugOverlay.className = 'debug-overlay';
-        gameContainer.appendChild(debugOverlay);
+    // Create debug overlay
+    const debugOverlay = document.getElementById('debug-overlay');
+    if (debugOverlay) {
+        debugOverlay.style.display = 'block';
     }
     
-    // Debug mode state
-    window.debugMode = false;
-    window.lastFrameTime = Date.now();
+    // Add hitbox visualization
+    function createHitboxVisualizers() {
+        // For bullets
+        for (let bullet of bullets) {
+            const hitbox = document.createElement('div');
+            hitbox.className = 'hitbox-debug bullet-hitbox';
+            hitbox.style.width = '16px';
+            hitbox.style.height = '16px';
+            hitbox.style.left = (bullet.x - 8) + 'px';
+            hitbox.style.top = (bullet.y - 8) + 'px';
+            gameContainer.appendChild(hitbox);
+            
+            // Store reference to hitbox
+            bullet.hitbox = hitbox;
+        }
+        
+        // For enemies
+        for (let enemy of enemies) {
+            const hitbox = document.createElement('div');
+            hitbox.className = 'hitbox-debug enemy-hitbox';
+            hitbox.style.width = '40px';
+            hitbox.style.height = '40px';
+            hitbox.style.left = (enemy.x - 20) + 'px';
+            hitbox.style.top = (enemy.y - 20) + 'px';
+            gameContainer.appendChild(hitbox);
+            
+            // Store reference to hitbox
+            enemy.hitbox = hitbox;
+        }
+    }
     
-    // Toggle debug mode
-    debugModeBtn.addEventListener('click', function() {
-        window.debugMode = !window.debugMode;
-        debugOverlay.style.display = window.debugMode ? 'block' : 'none';
+    // Update hitbox positions
+    function updateHitboxes() {
+        // For bullets
+        for (let bullet of bullets) {
+            if (bullet.hitbox) {
+                bullet.hitbox.style.left = (bullet.x - 8) + 'px';
+                bullet.hitbox.style.top = (bullet.y - 8) + 'px';
+            }
+        }
         
-        // Toggle hitbox visualization
-        const hitboxes = document.querySelectorAll('.hitbox-debug');
-        hitboxes.forEach(function(box) {
-            box.style.display = window.debugMode ? 'block' : 'none';
-        });
+        // For enemies
+        for (let enemy of enemies) {
+            if (enemy.hitbox) {
+                enemy.hitbox.style.left = (enemy.x - 20) + 'px';
+                enemy.hitbox.style.top = (enemy.y - 20) + 'px';
+            }
+        }
+    }
+    
+    // Add keyboard shortcuts for debugging
+    document.addEventListener('keydown', function(e) {
+        // Press 'D' to toggle debug overlay
+        if (e.key === 'd' || e.key === 'D') {
+            debugOverlay.style.display = debugOverlay.style.display === 'none' ? 'block' : 'none';
+        }
         
-        // Update button text
-        debugModeBtn.textContent = window.debugMode ? 'Hide Debug Mode' : 'Show Debug Mode';
+        // Press 'H' to toggle hitbox visualization
+        if (e.key === 'h' || e.key === 'H') {
+            const hitboxes = document.querySelectorAll('.hitbox-debug');
+            hitboxes.forEach(hitbox => {
+                hitbox.style.display = hitbox.style.display === 'none' ? 'block' : 'none';
+            });
+        }
         
-        // Add CSS for hitbox visualization if needed
-        if (window.debugMode && !document.getElementById('debug-styles')) {
-            const style = document.createElement('style');
-            style.id = 'debug-styles';
-            style.textContent = `
-                .hitbox-debug {
-                    position: absolute;
-                    border-radius: 50%;
-                    pointer-events: none;
-                    z-index: 100;
+        // Press 'K' to kill all enemies (for testing)
+        if (e.key === 'k' || e.key === 'K') {
+            enemies.forEach(enemy => {
+                if (enemy.element && enemy.element.parentNode) {
+                    enemy.element.remove();
                 }
-                .bullet-hitbox {
-                    border: 1px solid yellow;
-                    opacity: 0.5;
-                }
-                .enemy-hitbox {
-                    border: 1px solid red;
-                    opacity: 0.5;
-                }
-                .debug-overlay {
-                    background-color: rgba(0,0,0,0.7) !important;
-                    padding: 10px !important;
-                    font-size: 14px !important;
-                    z-index: 1000 !important;
-                }
-            `;
-            document.head.appendChild(style);
+            });
+            enemies = [];
+        }
+        
+        // Press 'B' to spawn boss (for testing)
+        if (e.key === 'b' || e.key === 'B') {
+            createBoss();
+        }
+        
+        // Press 'P' to spawn powerup (for testing)
+        if (e.key === 'p' || e.key === 'P') {
+            const powerupType = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+            createPowerup(Math.random() * CONTAINER_WIDTH, Math.random() * CONTAINER_HEIGHT / 2);
+        }
+        
+        // Press 'L' to level up (for testing)
+        if (e.key === 'l' || e.key === 'L') {
+            level++;
+            levelDisplay.textContent = 'Level: ' + level;
+            showLevelUpMessage("LEVEL " + level);
         }
     });
     
-    // Patch the game's collision detection to use more generous hit detection
-    patchGameCollisionDetection();
-});
-
-// Function to draw hitboxes for debugging (to be called in gameLoop)
-function drawDebugHitboxes(gameContainer, bullets, enemies) {
-    if (!window.debugMode) return;
-    
-    // Clear any existing hitbox visualizations
-    const existingHitboxes = document.querySelectorAll('.hitbox-debug');
-    existingHitboxes.forEach(box => box.remove());
-    
-    // Draw bullet hitboxes
-    bullets.forEach(bullet => {
-        const hitbox = document.createElement('div');
-        hitbox.className = 'hitbox-debug bullet-hitbox';
-        hitbox.style.left = (bullet.x - 15) + 'px';
-        hitbox.style.top = (bullet.y - 15) + 'px';
-        hitbox.style.width = '30px';
-        hitbox.style.height = '30px';
-        gameContainer.appendChild(hitbox);
-    });
-    
-    // Draw enemy hitboxes
-    enemies.forEach(enemy => {
-        const hitbox = document.createElement('div');
-        hitbox.className = 'hitbox-debug enemy-hitbox';
-        hitbox.style.left = (enemy.x - 25) + 'px';
-        hitbox.style.top = (enemy.y - 25) + 'px';
-        hitbox.style.width = '50px';
-        hitbox.style.height = '50px';
-        gameContainer.appendChild(hitbox);
-    });
-}
-
-// Function to update debug overlay
-function updateDebugOverlay(debugOverlay, gameStats) {
-    if (!window.debugMode || !debugOverlay) return;
-    
-    const now = Date.now();
-    const fps = Math.round(1000 / (now - window.lastFrameTime));
-    window.lastFrameTime = now;
-    
-    debugOverlay.innerHTML = `
-        Bullets: ${gameStats.bullets || 0}<br>
-        Enemies: ${gameStats.enemies || 0}<br>
-        Player: (${gameStats.playerX || 0}, ${gameStats.playerY || 0})<br>
-        FPS: ${fps || 0}<br>
-        Hit radius: 25px
-    `;
-}
-
-// Function to patch the game's collision detection
-function patchGameCollisionDetection() {
-    // This function will be called after the page loads
-    // It will wait for the game to initialize and then patch the checkCollisions function
-    
-    // Check every 100ms if the game has initialized
-    const checkInterval = setInterval(function() {
-        if (typeof checkCollisions === 'function') {
-            // Game has initialized, patch the function
-            clearInterval(checkInterval);
+    // Override game loop to include debug features
+    const originalGameLoop = gameLoop;
+    gameLoop = function() {
+        originalGameLoop();
+        
+        if (gameActive) {
+            // Update debug info
+            debugOverlay.textContent = `FPS: ${Math.round(1000 / (Date.now() - (lastFrameTime || Date.now())))} | Enemies: ${enemies.length} | Bullets: ${bullets.length}`;
+            lastFrameTime = Date.now();
             
-            // Store the original function
-            const originalCheckCollisions = checkCollisions;
-            
-            // Replace with our patched version
-            window.checkCollisions = function() {
-                // Call the original function first
-                originalCheckCollisions.apply(this, arguments);
-                
-                // Update debug info if debug mode is on
-                if (window.debugMode) {
-                    const gameContainer = document.getElementById('game-container');
-                    const debugOverlay = document.getElementById('debug-overlay');
-                    
-                    if (gameContainer && typeof bullets !== 'undefined' && typeof enemies !== 'undefined') {
-                        // Draw hitboxes
-                        drawDebugHitboxes(gameContainer, bullets, enemies);
-                        
-                        // Update debug overlay
-                        if (debugOverlay) {
-                            updateDebugOverlay(debugOverlay, {
-                                bullets: bullets.length,
-                                enemies: enemies.length,
-                                playerX: playerX,
-                                playerY: CONTAINER_HEIGHT - 40
-                            });
-                        }
-                    }
-                }
-            };
-            
-            console.log('Game collision detection patched successfully');
+            // Update hitboxes
+            updateHitboxes();
         }
-    }, 100);
+    };
     
-    // Stop checking after 10 seconds to avoid infinite loop
+    // Track frame time for FPS calculation
+    let lastFrameTime = null;
+    
+    // Show hitboxes on startup
     setTimeout(function() {
-        clearInterval(checkInterval);
-    }, 10000);
+        document.querySelectorAll('.hitbox-debug').forEach(hitbox => {
+            hitbox.style.display = 'block';
+        });
+    }, 1000);
 }
